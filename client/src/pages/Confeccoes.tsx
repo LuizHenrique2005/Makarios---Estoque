@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { Produto, Confeccao } from '../types';
 import { storageService } from '../services/storage';
@@ -6,6 +7,7 @@ import { calcularCustoProduto } from '../utils/calculos';
 import { calcularConsumoMaterial } from '../utils/conversoes';
 
 export default function Confeccoes() {
+  const location = useLocation();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [confeccoes, setConfeccoes] = useState<Confeccao[]>([]);
   const [produtoSelecionado, setProdutoSelecionado] = useState('');
@@ -14,6 +16,13 @@ export default function Confeccoes() {
   useEffect(() => {
     carregarDados();
   }, []);
+
+  useEffect(() => {
+    // Se vier um produto pré-selecionado da navegação
+    if (location.state?.produtoId) {
+      setProdutoSelecionado(location.state.produtoId);
+    }
+  }, [location.state]);
 
   const carregarDados = () => {
     setProdutos(storageService.getProdutos());

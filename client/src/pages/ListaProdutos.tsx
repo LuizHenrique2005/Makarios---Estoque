@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, Eye, ShoppingCart } from 'lucide-react';
+import { Package, Eye, ShoppingCart, Factory } from 'lucide-react';
 import type { Produto, Material } from '../types';
 import { storageService } from '../services/storage';
 import { calcularCustoProduto, calcularQuantidadeMaximaProduzir } from '../utils/calculos';
@@ -209,11 +209,22 @@ export default function ListaProdutos() {
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-6 flex gap-3">
             <Button
-              variant="primary"
+              variant="success"
+              onClick={() => {
+                fecharDetalhes();
+                navigate('/confeccoes', { state: { produtoId: produtoSelecionado.id } });
+              }}
+              className="flex-1"
+              icon={Factory}
+            >
+              Ir para Confecção
+            </Button>
+            <Button
+              variant="secondary"
               onClick={fecharDetalhes}
-              className="w-full"
+              className="flex-1"
             >
               Fechar
             </Button>
