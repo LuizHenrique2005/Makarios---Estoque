@@ -21,10 +21,13 @@ export default function Dashboard() {
     carregarDados();
   }, []);
 
-  const carregarDados = () => {
-    setProdutos(storageService.getProdutos());
-    setMateriais(storageService.getMateriais());
-    setConfeccoes(storageService.getConfeccoes());
+  const carregarDados = async () => {
+    const produtosData = await storageService.getProdutos();
+    const materiaisData = await storageService.getMateriais();
+    const confeccoesData = await storageService.getConfeccoes();
+    setProdutos(produtosData);
+    setMateriais(materiaisData);
+    setConfeccoes(confeccoesData);
   };
 
   // KPIs

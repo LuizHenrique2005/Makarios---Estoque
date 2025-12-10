@@ -15,8 +15,9 @@ export default function Materiais() {
     carregarMateriais();
   }, []);
 
-  const carregarMateriais = () => {
-    setMateriais(storageService.getMateriais());
+  const carregarMateriais = async () => {
+    const dados = await storageService.getMateriais();
+    setMateriais(dados);
   };
 
   const handleSubmit = (e: React.FormEvent) => {

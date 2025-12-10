@@ -1,88 +1,64 @@
 import type { Material, Produto, Confeccao } from '../types';
+import { firebaseService } from './firebaseService';
 
-const MATERIAIS_KEY = 'materiais';
-const PRODUTOS_KEY = 'produtos';
-const CONFECCOES_KEY = 'confeccoes';
-
+// Service que usa Firebase (sincroniza entre dispositivos)
 export const storageService = {
   // Materiais
-  getMateriais(): Material[] {
-    const data = localStorage.getItem(MATERIAIS_KEY);
-    return data ? JSON.parse(data) : [];
+  getMateriais(): Promise<Material[]> {
+    return firebaseService.getMateriais();
   },
 
-  saveMateriais(materiais: Material[]): void {
-    localStorage.setItem(MATERIAIS_KEY, JSON.stringify(materiais));
+  saveMateriais(materiais: Material[]): Promise<void> {
+    return firebaseService.saveMateriais(materiais);
   },
 
-  addMaterial(material: Material): void {
-    const materiais = this.getMateriais();
-    materiais.push(material);
-    this.saveMateriais(materiais);
+  addMaterial(material: Material): Promise<void> {
+    return firebaseService.addMaterial(material);
   },
 
-  updateMaterial(material: Material): void {
-    const materiais = this.getMateriais();
-    const index = materiais.findIndex(m => m.id === material.id);
-    if (index !== -1) {
-      materiais[index] = material;
-      this.saveMateriais(materiais);
-    }
+  updateMaterial(material: Material): Promise<void> {
+    return firebaseService.updateMaterial(material);
   },
 
-  deleteMaterial(id: string): void {
-    const materiais = this.getMateriais().filter(m => m.id !== id);
-    this.saveMateriais(materiais);
+  deleteMaterial(id: string): Promise<void> {
+    return firebaseService.deleteMaterial(id);
   },
 
   // Produtos
-  getProdutos(): Produto[] {
-    const data = localStorage.getItem(PRODUTOS_KEY);
-    return data ? JSON.parse(data) : [];
+  getProdutos(): Promise<Produto[]> {
+    return firebaseService.getProdutos();
   },
 
-  saveProdutos(produtos: Produto[]): void {
-    localStorage.setItem(PRODUTOS_KEY, JSON.stringify(produtos));
+  saveProdutos(produtos: Produto[]): Promise<void> {
+    return firebaseService.saveProdutos(produtos);
   },
 
-  addProduto(produto: Produto): void {
-    const produtos = this.getProdutos();
-    produtos.push(produto);
-    this.saveProdutos(produtos);
+  addProduto(produto: Produto): Promise<void> {
+    return firebaseService.addProduto(produto);
   },
 
-  updateProduto(produto: Produto): void {
-    const produtos = this.getProdutos();
-    const index = produtos.findIndex(p => p.id === produto.id);
-    if (index !== -1) {
-      produtos[index] = produto;
-      this.saveProdutos(produtos);
-    }
+  updateProduto(produto: Produto): Promise<void> {
+    return firebaseService.updateProduto(produto);
   },
 
-  deleteProduto(id: string): void {
-    const produtos = this.getProdutos().filter(p => p.id !== id);
-    this.saveProdutos(produtos);
+  deleteProduto(id: string): Promise<void> {
+    return firebaseService.deleteProduto(id);
   },
 
   // Confecções
-  getConfeccoes(): Confeccao[] {
-    const data = localStorage.getItem(CONFECCOES_KEY);
-    return data ? JSON.parse(data) : [];
+  getConfeccoes(): Promise<Confeccao[]> {
+    return firebaseService.getConfeccoes();
   },
 
-  saveConfeccoes(confeccoes: Confeccao[]): void {
-    localStorage.setItem(CONFECCOES_KEY, JSON.stringify(confeccoes));
+  saveConfeccoes(confeccoes: Confeccao[]): Promise<void> {
+    return firebaseService.saveConfeccoes(confeccoes);
   },
 
-  addConfeccao(confeccao: Confeccao): void {
-    const confeccoes = this.getConfeccoes();
-    confeccoes.unshift(confeccao); // Adiciona no início
-    this.saveConfeccoes(confeccoes);
+  addConfeccao(confeccao: Confeccao): Promise<void> {
+    return firebaseService.addConfeccao(confeccao);
   },
 
-  deleteConfeccao(id: string): void {
-    const confeccoes = this.getConfeccoes().filter(c => c.id !== id);
-    this.saveConfeccoes(confeccoes);
+  deleteConfeccao(id: string): Promise<void> {
+    return firebaseService.deleteConfeccao(id);
   },
 };

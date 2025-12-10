@@ -15,12 +15,14 @@ export default function Produtos() {
     carregarDados();
   }, []);
 
-  const carregarDados = () => {
-    setProdutos(storageService.getProdutos());
-    setMateriaisCadastrados(storageService.getMateriais());
+  const carregarDados = async () => {
+    const produtosData = await storageService.getProdutos();
+    const materiaisData = await storageService.getMateriais();
+    setProdutos(produtosData);
+    setMateriaisCadastrados(materiaisData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (materiaisSelecionados.length === 0) {
@@ -35,15 +37,20 @@ export default function Produtos() {
       quantidadeProduzir: parseInt(quantidadeProduzir),
     };
 
-    if (editando) {
-      storageService.updateProduto(produto);
-      setEditando(null);
-    } else {
-      storageService.addProduto(produto);
-    }
+    try {
+      if (editando) {
+        await storageService.updateProduto(produto);
+        setEditando(null);
+      } else {
+        await storageService.addProduto(produto);
+      }
 
-    limparFormulario();
-    carregarDados();
+      limparFormulario();
+      await carregarDados();
+    } catch (error) {
+      console.error('Erro ao salvar produto:', error);
+      alert('Erro ao salvar produto. Tente novamente.');
+    }
   };
 
   const limparFormulario = () => {
@@ -85,10 +92,15 @@ export default function Produtos() {
     setEditando(produto.id);
   };
 
-  const handleDeletar = (id: string) => {
+  const handleDeletar = async (id: string) => {
     if (confirm('Deseja realmente deletar este produto?')) {
-      storageService.deleteProduto(id);
-      carregarDados();
+      try {
+        await storageService.deleteProduto(id);
+        await carregarDados();
+      } catch (error) {
+        console.error('Erro ao deletar produto:', error);
+        alert('Erro ao deletar produto. Tente novamente.');
+      }
     }
   };
 

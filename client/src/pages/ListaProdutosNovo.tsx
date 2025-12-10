@@ -12,9 +12,11 @@ export default function ListaProdutos() {
     carregarDados();
   }, []);
 
-  const carregarDados = () => {
-    setProdutos(storageService.getProdutos());
-    setMateriais(storageService.getMateriais());
+  const carregarDados = async () => {
+    const produtosData = await storageService.getProdutos();
+    const materiaisData = await storageService.getMateriais();
+    setProdutos(produtosData);
+    setMateriais(materiaisData);
   };
 
   const handleSelecionarProduto = (produto: Produto) => {

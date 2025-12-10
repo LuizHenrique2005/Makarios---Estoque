@@ -20,9 +20,11 @@ export default function ListaProdutos() {
     carregarDados();
   }, []);
 
-  const carregarDados = () => {
-    setProdutos(storageService.getProdutos());
-    setMateriais(storageService.getMateriais());
+  const carregarDados = async () => {
+    const produtosData = await storageService.getProdutos();
+    const materiaisData = await storageService.getMateriais();
+    setProdutos(produtosData);
+    setMateriais(materiaisData);
   };
 
   const handleSelecionarProduto = (produto: Produto) => {
@@ -140,28 +142,6 @@ export default function ListaProdutos() {
           onClose={fecharDetalhes}
           title={produtoSelecionado.nome}
           size="lg"
-          footer={
-            <div className="flex gap-3">
-              <Button
-                variant="success"
-                onClick={() => {
-                  fecharDetalhes();
-                  navigate('/confeccoes', { state: { produtoId: produtoSelecionado.id } });
-                }}
-                className="flex-1"
-                icon={Factory}
-              >
-                Ir para Confecção
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={fecharDetalhes}
-                className="flex-1"
-              >
-                Fechar
-              </Button>
-            </div>
-          }
         >
           <div className="space-y-6">
             {/* Resumo */}
@@ -229,6 +209,27 @@ export default function ListaProdutos() {
                 })}
               </div>
             </div>
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <Button
+              variant="success"
+              onClick={() => {
+                fecharDetalhes();
+                navigate('/confeccoes', { state: { produtoId: produtoSelecionado.id } });
+              }}
+              className="flex-1"
+              icon={Factory}
+            >
+              Ir para Confecção
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={fecharDetalhes}
+              className="flex-1"
+            >
+              Fechar
+            </Button>
           </div>
         </Modal>
       )}

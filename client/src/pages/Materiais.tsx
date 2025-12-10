@@ -23,8 +23,14 @@ export default function Materiais() {
     carregarMateriais();
   }, []);
 
-  const carregarMateriais = () => {
-    setMateriais(storageService.getMateriais());
+  const carregarMateriais = async () => {
+    try {
+      const dados = await storageService.getMateriais();
+      setMateriais(dados);
+    } catch (error) {
+      toast.error('Erro ao carregar materiais');
+      console.error(error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,16 +48,16 @@ export default function Materiais() {
       };
 
       if (editando) {
-        storageService.updateMaterial(material);
+        await storageService.updateMaterial(material);
         toast.success('Material atualizado com sucesso!');
         setEditando(null);
       } else {
-        storageService.addMaterial(material);
+        await storageService.addMaterial(material);
         toast.success('Material cadastrado com sucesso!');
       }
 
       limparFormulario();
-      carregarMateriais();
+      await carregarMateriais();
     } catch (error) {
       toast.error('Erro ao salvar material. Tente novamente.');
       console.error(error);
@@ -79,11 +85,11 @@ export default function Materiais() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeletar = (id: string, nome: string) => {
+  const handleDeletar = async (id: string, nome: string) => {
     if (confirm(`Deseja realmente deletar o material "${nome}"?`)) {
       try {
-        storageService.deleteMaterial(id);
-        carregarMateriais();
+        await storageService.deleteMaterial(id);
+        await carregarMateriais();
         toast.success('Material deletado com sucesso!');
       } catch (error) {
         toast.error('Erro ao deletar material.');

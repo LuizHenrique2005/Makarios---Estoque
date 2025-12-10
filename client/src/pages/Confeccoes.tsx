@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import type { Produto, Confeccao } from '../types';
+import type { Produto, Confeccao, Material } from '../types';
 import { storageService } from '../services/storage';
 import { calcularCustoProduto } from '../utils/calculos';
 import { calcularConsumoMaterial } from '../utils/conversoes';
@@ -9,6 +9,7 @@ import { calcularConsumoMaterial } from '../utils/conversoes';
 export default function Confeccoes() {
   const location = useLocation();
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [materiais, setMateriais] = useState<Material[]>([]);
   const [confeccoes, setConfeccoes] = useState<Confeccao[]>([]);
   const [produtoSelecionado, setProdutoSelecionado] = useState('');
   const [quantidadeConfeccionada, setQuantidadeConfeccionada] = useState('1');
@@ -24,16 +25,20 @@ export default function Confeccoes() {
     }
   }, [location.state]);
 
-  const carregarDados = () => {
-    setProdutos(storageService.getProdutos());
-    setConfeccoes(storageService.getConfeccoes());
+  const carregarDados = async () => {
+    const produtosData = await storageService.getProdutos();
+    const materiaisData = await storageService.getMateriais();
+    const confeccoesData = await storageService.getConfeccoes();
+    setProdutos(produtosData);
+    setMateriais(materiaisData);
+    setConfeccoes(confeccoesData);
   };
 
-  const handleRemoverConfeccao = (confeccaoId: string, produtoNome: string) => {
+  const handleRemoverConfeccao = async (confeccaoId: string, produtoNome: string) => {
     if (confirm(`Deseja realmente remover a confecção de "${produtoNome}"?`)) {
       try {
-        storageService.deleteConfeccao(confeccaoId);
-        carregarDados();
+        await storageService.deleteConfeccao(confeccaoId);
+        await carregarDados();
         toast.success('Confecção removida com sucesso!');
       } catch (error) {
         toast.error('Erro ao remover confecção.');
@@ -42,7 +47,7 @@ export default function Confeccoes() {
     }
   };
 
-  const handleConfirmarProducao = (e: React.FormEvent) => {
+  const handleConfirmarProducao = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const produto = produtos.find(p => p.id === produtoSelecionado);
@@ -51,12 +56,12 @@ export default function Confeccoes() {
       return;
     }
 
-    const materiais = storageService.getMateriais();
+    const materiaisAtuais = await storageService.getMateriais();
     const quantidade = parseInt(quantidadeConfeccionada);
 
     // Verifica se há estoque suficiente
     for (const mp of produto.materiais) {
-      const material = materiais.find(m => m.id === mp.materialId);
+      const material = materiaisAtuais.find(m => m.id === mp.materialId);
       if (!material) continue;
 
       const consumoTotal = calcularConsumoMaterial(
@@ -71,46 +76,51 @@ export default function Confeccoes() {
       }
     }
 
-    // Baixa o estoque
-    const materiaisAtualizados = materiais.map(material => {
-      const mp = produto.materiais.find(m => m.materialId === material.id);
-      if (mp) {
-        const consumoTotal = calcularConsumoMaterial(
-          mp.quantidadeUsada * quantidade,
-          material.unidadeUso,
-          material.unidadeCompra
-        );
-        return {
-          ...material,
-          estoqueAtual: material.estoqueAtual - consumoTotal
-        };
-      }
-      return material;
-    });
+    try {
+      // Baixa o estoque
+      const materiaisAtualizados = materiaisAtuais.map(material => {
+        const mp = produto.materiais.find(m => m.materialId === material.id);
+        if (mp) {
+          const consumoTotal = calcularConsumoMaterial(
+            mp.quantidadeUsada * quantidade,
+            material.unidadeUso,
+            material.unidadeCompra
+          );
+          return {
+            ...material,
+            estoqueAtual: material.estoqueAtual - consumoTotal
+          };
+        }
+        return material;
+      });
 
-    storageService.saveMateriais(materiaisAtualizados);
+      await storageService.saveMateriais(materiaisAtualizados);
 
-    // Registra a confecção
-    const confeccao: Confeccao = {
-      id: crypto.randomUUID(),
-      produtoId: produto.id,
-      produtoNome: produto.nome,
-      quantidadeConfeccionada: quantidade,
-      custoTotal: calcularCustoProduto(
-        { ...produto, quantidadeProduzir: quantidade },
-        materiais
-      ),
-      materiaisUsados: produto.materiais,
-      dataConfeccao: new Date().toISOString(),
-    };
+      // Registra a confecção
+      const confeccao: Confeccao = {
+        id: crypto.randomUUID(),
+        produtoId: produto.id,
+        produtoNome: produto.nome,
+        quantidadeConfeccionada: quantidade,
+        custoTotal: calcularCustoProduto(
+          { ...produto, quantidadeProduzir: quantidade },
+          materiaisAtuais
+        ),
+        materiaisUsados: produto.materiais,
+        dataConfeccao: new Date().toISOString(),
+      };
 
-    storageService.addConfeccao(confeccao);
+      await storageService.addConfeccao(confeccao);
 
-    alert(`Produção registrada com sucesso! ${quantidade} ${quantidade === 1 ? 'unidade' : 'unidades'} de ${produto.nome}`);
-    
-    setProdutoSelecionado('');
-    setQuantidadeConfeccionada('1');
-    carregarDados();
+      alert(`Produção registrada com sucesso! ${quantidade} ${quantidade === 1 ? 'unidade' : 'unidades'} de ${produto.nome}`);
+      
+      setProdutoSelecionado('');
+      setQuantidadeConfeccionada('1');
+      await carregarDados();
+    } catch (error) {
+      console.error('Erro ao confirmar produção:', error);
+      alert('Erro ao confirmar produção. Tente novamente.');
+    }
   };
 
   const formatarData = (dataISO: string) => {
@@ -125,7 +135,6 @@ export default function Confeccoes() {
   };
 
   const produtoSelecionadoObj = produtos.find(p => p.id === produtoSelecionado);
-  const materiais = storageService.getMateriais();
 
   return (
     <div className="max-w-6xl mx-auto p-6">
